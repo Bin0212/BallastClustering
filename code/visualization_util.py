@@ -1,5 +1,6 @@
 import vtk
 import numpy as np
+import pandas as pd
 import math
 import os 
 
@@ -32,7 +33,7 @@ def get_class(filename,Master_list):
 
     
 #------------------------------------ Read v3d File ------------------------------------
-def get_data_v3d(filename):
+def get_data_v3d(filename, part_num):
     f = open(filename,'r')
     data = ['BOUNDARIES','0','CircularBOUNDARIES','0','PARTICLES']
     f.readline()
@@ -40,7 +41,7 @@ def get_data_v3d(filename):
     data = data + [numParticle]
     fl = f.readline()
     Master_list = []
-   
+    skip_particle = 0
     while True:
         if fl == 'ITEMS: PARTICLES\n':
             break
@@ -48,10 +49,17 @@ def get_data_v3d(filename):
             vertex_new = []
             id_mass_type = f.readline()[:-1].split(',')
             shape = int(id_mass_type[2])-1
-            
-            if shape == 0 :
+            part_id = int(id_mass_type[0])
+            if shape == 0:
                 fl = f.readline()
                 Master_list.append(id_mass_type[0])
+                while (fl != 'Element: id mass type centriod[3] minertia[3] princpdir[3][3] velocity[2][3] vertex[n][3]\n'):
+                    if fl == 'ITEMS: PARTICLES\n':
+                        break
+                    fl = f.readline()
+            elif part_id not in part_num:
+                fl = f.readline()
+                skip_particle += 1
                 while (fl != 'Element: id mass type centriod[3] minertia[3] princpdir[3][3] velocity[2][3] vertex[n][3]\n'):
                     if fl == 'ITEMS: PARTICLES\n':
                         break
@@ -66,7 +74,7 @@ def get_data_v3d(filename):
                     vertex_new += fl[:-1].split(',')
                     fl = f.readline()
                 data += [str(int(len(vertex_new)/3)),str(shape)] + vertex_new
-    data[5] = str(int(data[5])-len(Master_list)) 
+    data[5] = str(int(data[5])-len(Master_list)-skip_particle)
     f.close()
     return data, Master_list
 
@@ -292,7 +300,7 @@ def visualization(library,data,clsfct,num_label):
     Colors.SetName("Colors")
     
     particle_faces = vtk.vtkCellArray()
-    for nb in range(0, min(len(clsfct), numParticle)):
+    for nb in range(0, numParticle):
          # set color for each cluster
         for num_face in range(0,Particles_face[shape[nb]]):
             label = clsfct[nb]
@@ -372,16 +380,19 @@ def visualization(library,data,clsfct,num_label):
     renw.Render()
 
     iren.Start()
-    end = input("Terminate program? ")
-    raise SystemExit
+#     end = input("Terminate program? ")
+#     raise SystemExit
 
 def plot(classification,v3d,library):
     numBoundary= numParticle = numCircularBoundary =0
-    data, Master_list = get_data_v3d(v3d)
+    labelfile = pd.read_csv(classification)
+    part_num = labelfile["part_num"]
+    print(part_num)
+    data, Master_list = get_data_v3d(v3d, part_num)
     clsfct,num_label = get_class(classification,Master_list)
     visualization(library,data,clsfct,num_label)
 
-# plot('labels_semi_cb.csv','CenterBinding.v3d','library.vlb')
+plot('labels_movement_cross_cb copy.csv','CenterBinding.v3d','library.vlb')
 
 
 
