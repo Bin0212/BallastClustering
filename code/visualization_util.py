@@ -42,6 +42,7 @@ def get_data_v3d(filename, part_num):
     fl = f.readline()
     Master_list = []
     skip_particle = 0
+    save_particle = 0
     while True:
         if fl == 'ITEMS: PARTICLES\n':
             break
@@ -57,7 +58,8 @@ def get_data_v3d(filename, part_num):
                     if fl == 'ITEMS: PARTICLES\n':
                         break
                     fl = f.readline()
-            elif part_id not in part_num:
+            elif part_id not in part_num.values:
+#                 print(part_id)
                 fl = f.readline()
                 skip_particle += 1
                 while (fl != 'Element: id mass type centriod[3] minertia[3] princpdir[3][3] velocity[2][3] vertex[n][3]\n'):
@@ -65,6 +67,8 @@ def get_data_v3d(filename, part_num):
                         break
                     fl = f.readline()
             else:  
+#                 print(part_id)
+                save_particle += 1
                 for i in range(7):
                     f.readline()
                 fl = f.readline()
@@ -387,12 +391,13 @@ def plot(classification,v3d,library):
     numBoundary= numParticle = numCircularBoundary =0
     labelfile = pd.read_csv(classification)
     part_num = labelfile["part_num"]
-    print(part_num)
+#     print(part_num)
     data, Master_list = get_data_v3d(v3d, part_num)
     clsfct,num_label = get_class(classification,Master_list)
+#     print(len(clsfct))
     visualization(library,data,clsfct,num_label)
 
-plot('labels_movement_cross_cb copy.csv','CenterBinding.v3d','library.vlb')
+plot('labels_movement_cross_cb.csv','CenterBinding.v3d','library.vlb')
 
 
 
