@@ -391,13 +391,11 @@ def plot(classification,v3d,library):
     numBoundary= numParticle = numCircularBoundary =0
     labelfile = pd.read_csv(classification)
     part_num = labelfile["part_num"]
-#     print(part_num)
     data, Master_list = get_data_v3d(v3d, part_num)
     clsfct,num_label = get_class(classification,Master_list)
-#     print(len(clsfct))
     visualization(library,data,clsfct,num_label)
 
-plot('labels_movement_cross_cb.csv','CenterBinding.v3d','library.vlb')
+# plot('labels_movement_cross_cb.csv','CenterBinding.v3d','library.vlb')
 
 
 
